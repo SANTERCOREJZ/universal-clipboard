@@ -24,6 +24,12 @@ class Prefs(context: Context) {
         get() = sp.getString("token", "changeme") ?: "changeme"
         set(v) { sp.edit().putString("token", v).apply() }
 
+    // Highest clipboard "seq" we've already notified about (Mac → Android), so we don't
+    // re-show the same item when the WebSocket reconnects and replays the current clip.
+    var lastInboxSeq: Int
+        get() = sp.getInt("last_inbox_seq", -1)
+        set(v) { sp.edit().putInt("last_inbox_seq", v).apply() }
+
     val baseUrl: String get() = "http://$ip:$port"
     val isConfigured: Boolean get() = ip.isNotBlank()
 }

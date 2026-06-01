@@ -62,6 +62,20 @@
             android:excludeFromRecents="true"
             android:taskAffinity="" />
 
+        <!--
+            Transparent activity for the Mac → Android direction. Opens when the user
+            taps the "Copied on Mac" notification, writes the content into the clipboard
+            (and saves images to the gallery), then closes itself. Same invisibility
+            setup as ClipSendActivity.
+        -->
+        <activity
+            android:name=".PasteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AndroidDrop.Transparent"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
+
         <!-- Foreground service: the persistent notification in the tray -->
         <service
             android:name=".DropService"

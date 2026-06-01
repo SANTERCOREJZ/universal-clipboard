@@ -90,6 +90,28 @@ object Uploader {
         ).execute()
     }
 
+    /** Mac → Android: pull the current outgoing clipboard metadata (and text, if text). */
+    fun getOutbox(prefs: Prefs): Response {
+        return http.newCall(
+            Request.Builder()
+                .url("${prefs.baseUrl}/outbox")
+                .header("x-token", prefs.token)
+                .get()
+                .build()
+        ).execute()
+    }
+
+    /** Mac → Android: download the current outgoing clipboard image bytes. */
+    fun getOutboxFile(prefs: Prefs): Response {
+        return http.newCall(
+            Request.Builder()
+                .url("${prefs.baseUrl}/outbox/file")
+                .header("x-token", prefs.token)
+                .get()
+                .build()
+        ).execute()
+    }
+
     /** Ping /health to verify the IP and token are correct before the first real send. */
     fun healthCheck(prefs: Prefs): Response {
         return http.newCall(

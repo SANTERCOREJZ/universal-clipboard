@@ -21,6 +21,7 @@ import uvicorn
 
 import config
 import discovery
+import server
 from server import app as fastapi_app, _local_ip
 
 
@@ -45,10 +46,17 @@ class AndroidDropApp(rumps.App):
         # rumps.App(title, icon=path) — icon must be a 22×22 px template image.
         super().__init__("AndroidDrop", title="⬇", quit_button=None)
 
+        # Toggle for the Mac → Android direction. Checked = the Mac pushes every
+        # new copy to connected phones. Starts on, matching server._watch_enabled.
+        self.send_item = rumps.MenuItem("Send clipboard to Android", callback=self.toggle_send)
+        self.send_item.state = 1
+
         self.menu = [
             rumps.MenuItem("Open Received Folder", callback=self.open_folder),
             rumps.MenuItem("Recent Items",         callback=self.show_recent),
             None,  # separator
+            self.send_item,
+            None,
             rumps.MenuItem(f"Listening on  {_local_ip()}:{config.PORT}"),  # informational, no callback
             None,
             rumps.MenuItem("Quit", callback=self.quit_app),
@@ -82,6 +90,11 @@ class AndroidDropApp(rumps.App):
             body = "No files received yet.\n\nWaiting for Android to send something…"
 
         rumps.alert(title="Recent Items", message=body, ok="Close")
+
+    def toggle_send(self, sender):
+        """Enable/disable pushing the Mac clipboard to Android."""
+        sender.state = not sender.state
+        server.set_watch_enabled(bool(sender.state))
 
     def quit_app(self, _):
         discovery.stop()
