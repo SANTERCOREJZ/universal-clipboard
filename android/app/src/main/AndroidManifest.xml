@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Required on Android 13+ to show any notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.AndroidDrop"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true">
+
+        <!-- Main settings screen — shown as the app icon -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Share Sheet handler — appears when sharing files/images/text from any app -->
+        <activity
+            android:name=".ShareActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.AndroidDrop.ShareOverlay">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Transparent activity that reads the clipboard and sends it.
+            Opens instantly when notification button is tapped, closes itself when done.
+            noHistory: don't keep it in the back stack.
+            excludeFromRecents: don't show in the recent apps list.
+        -->
+        <activity
+            android:name=".ClipSendActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AndroidDrop.Transparent"
+            android:noHistory="true"
+            android:excludeFromRecents="true" />
+
+        <!-- Foreground service: the persistent notification in the tray -->
+        <service
+            android:name=".DropService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+    </application>
+</manifest>
