@@ -55,7 +55,8 @@ OPTIONS = {
         "cryptography",
         "cffi",
     ],
-    "includes": ["config", "server", "clipboard", "discovery", "tls", "typing_extensions"],
+    "includes": ["config", "server", "clipboard", "discovery", "tls", "settings", "window",
+                 "typing_extensions"],
 }
 
 setup(

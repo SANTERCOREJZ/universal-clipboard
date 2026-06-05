@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Main app theme used by SettingsActivity -->
-    <style name="Theme.AndroidDrop" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="android:statusBarColor">@color/purple_700</item>
+    <!-- Main app theme — Material 3 (Material You), adapts to light/dark automatically. -->
+    <style name="Theme.AndroidDrop" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/md_primary</item>
+        <item name="colorOnPrimary">@color/md_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_secondary</item>
+        <item name="colorOnSecondary">@color/md_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_onSecondaryContainer</item>
+        <item name="android:colorBackground">@color/md_background</item>
+        <item name="colorOnBackground">@color/md_onBackground</item>
+        <item name="colorSurface">@color/md_surface</item>
+        <item name="colorOnSurface">@color/md_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_onSurfaceVariant</item>
+        <item name="colorOutline">@color/md_outline</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">@bool/light_status_bar</item>
     </style>
 
     <!-- Translucent overlay for ShareActivity -->
-    <style name="Theme.AndroidDrop.ShareOverlay" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.AndroidDrop.ShareOverlay" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 
-    <!-- Fully transparent theme for ClipSendActivity — user never sees this activity -->
-    <style name="Theme.AndroidDrop.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Fully transparent theme for ClipSendActivity / PasteActivity — never visible -->
+    <style name="Theme.AndroidDrop.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>

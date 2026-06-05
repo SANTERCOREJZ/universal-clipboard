@@ -86,7 +86,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 withContext(Dispatchers.Main) {
                     btnTest.isEnabled = true
-                    btnTest.text = "Test Connection"
+                    btnTest.text = "Test"
                     Toast.makeText(this@SettingsActivity, msg, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
                 }
             }
@@ -169,7 +169,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 withContext(Dispatchers.Main) {
                     btnClipboard.isEnabled = true
-                    btnClipboard.text = "Send Clipboard to Mac"
+                    btnClipboard.text = "Send clipboard to Mac"
                     Toast.makeText(this@SettingsActivity, msg, if (ok) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
                 }
             }

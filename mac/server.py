@@ -22,6 +22,7 @@ from fastapi import (
 
 import clipboard
 import config
+import settings
 import tls
 
 app = FastAPI(title="AndroidDrop", version=config.VERSION)
@@ -30,8 +31,8 @@ app = FastAPI(title="AndroidDrop", version=config.VERSION)
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 def _require_token(x_token: str) -> None:
-    """Raise 401 if the request token doesn't match config.TOKEN."""
-    if x_token != config.TOKEN:
+    """Raise 401 if the request token doesn't match the configured token."""
+    if x_token != settings.get("token"):
         raise HTTPException(status_code=401, detail="unauthorized")
 
 
@@ -100,7 +101,7 @@ async def push_file(
     """
     _require_token(x_token)
 
-    save_path = _unique_path(config.SAVE_DIR, filename)
+    save_path = _unique_path(settings.save_dir(), filename)
     data = await file.read()
     save_path.write_bytes(data)
 
@@ -166,13 +167,14 @@ class _Outbox:
 _outbox = _Outbox()
 _ws_clients: set[WebSocket] = set()
 
-# Toggled from the menu bar ("Send clipboard to Android"). On by default.
-_watch_enabled = True
+# Toggled from the menu / Settings window ("Send clipboard to Android"); persisted.
+_watch_enabled = settings.get("send_to_android")
 
 
 def set_watch_enabled(enabled: bool) -> None:
     global _watch_enabled
     _watch_enabled = enabled
+    settings.set("send_to_android", enabled)
 
 
 def _outbox_event() -> dict:
@@ -200,7 +202,7 @@ async def _broadcast(message: dict) -> None:
 async def ws_endpoint(websocket: WebSocket):
     """Phones connect here and stay connected; we push clipboard events to them."""
     token = websocket.query_params.get("token") or websocket.headers.get("x-token")
-    if token != config.TOKEN:
+    if token != settings.get("token"):
         await websocket.close(code=1008)  # policy violation
         return
 

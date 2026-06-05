@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 dark color roles (brand_500 / icon_background stay as defined in values/) -->
+    <color name="md_primary">#FFBAC3FF</color>
+    <color name="md_onPrimary">#FF0A1B8A</color>
+    <color name="md_primaryContainer">#FF2A3CC7</color>
+    <color name="md_onPrimaryContainer">#FFDEE0FF</color>
+    <color name="md_secondary">#FF4FDAD3</color>
+    <color name="md_onSecondary">#FF003734</color>
+    <color name="md_secondaryContainer">#FF00504C</color>
+    <color name="md_onSecondaryContainer">#FF9FF2EA</color>
+    <color name="md_background">#FF121319</color>
+    <color name="md_onBackground">#FFE4E1E9</color>
+    <color name="md_surface">#FF121319</color>
+    <color name="md_onSurface">#FFE4E1E9</color>
+    <color name="md_surfaceVariant">#FF46464F</color>
+    <color name="md_onSurfaceVariant">#FFC7C5D0</color>
+    <color name="md_outline">#FF918F9A</color>
+</resources>

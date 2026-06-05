@@ -38,7 +38,8 @@ class DropService : Service() {
         const val ACTION_SHOW_RESULT = "com.androiddrop.SHOW_RESULT"
         const val EXTRA_RESULT = "result"
         private const val CHANNEL_ID = "androiddrop_status"
-        private const val INCOMING_CHANNEL_ID = "androiddrop_incoming"
+        // _v2: bumped so the now-silent settings replace the old noisy channel on update.
+        private const val INCOMING_CHANNEL_ID = "androiddrop_incoming_v2"
         const val NOTIF_ID = 1
         private const val INCOMING_NOTIF_ID = 2
         private const val WS_RETRY_MS = 4_000L
@@ -193,8 +194,9 @@ class DropService : Service() {
         val line = preview.ifBlank { "Tap to paste on this phone" }
 
         val notif = NotificationCompat.Builder(this, INCOMING_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_tile)
+            .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle(title)
+            .setSilent(true)
             .setContentText(line)
             .setStyle(NotificationCompat.BigTextStyle().bigText("$line\n\nTap to paste on this phone"))
             .setAutoCancel(true)
@@ -220,7 +222,7 @@ class DropService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_tile)
+            .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle("AndroidDrop")
             .setContentText(statusText)
             .setOngoing(true)           // cannot be swiped away
@@ -247,10 +249,14 @@ class DropService : Service() {
             }
         )
 
-        // Pop-up channel for "copied on Mac" alerts.
+        // Silent channel for "copied on Mac" alerts — shows in the status bar and shade,
+        // but no sound, no vibration, no heads-up pop. (LOW = silent but still visible.)
+        nm.deleteNotificationChannel("androiddrop_incoming")  // remove the old noisy channel
         nm.createNotificationChannel(
-            NotificationChannel(INCOMING_CHANNEL_ID, "Clipboard from Mac", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Notifies when the Mac copies something"
+            NotificationChannel(INCOMING_CHANNEL_ID, "Clipboard from Mac", NotificationManager.IMPORTANCE_LOW).apply {
+                description = "Silent alerts when the Mac copies something"
+                enableVibration(false)
+                setSound(null, null)
             }
         )
     }

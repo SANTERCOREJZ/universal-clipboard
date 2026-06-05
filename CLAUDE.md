@@ -39,6 +39,15 @@ MVP работает в обе стороны:
 Кнопка «Reset pairing» в настройках Android сбрасывает пин (при смене мака/серта).
 Отпечаток виден в меню мака («Show Security Code») и в `/health`.
 
+## Mac UI
+Живёт в строке меню (rumps, Accessory — иконки в доке нет). Пункт меню «Settings…»
+открывает окно (AppKit/PyObjC, `mac/window.py`): статус, редактируемый токен, выбор
+папки сохранения, тумблер «Send clipboard to Android», Security Code + Copy, «Open
+Folder». Пока окно открыто — приложение переключается в Regular (появляется иконка в
+доке), при закрытии — обратно в Accessory. Настройки (токен/папка/тумблер) хранятся в
+`~/Library/Application Support/AndroidDrop/settings.json` (`mac/settings.py`) — больше
+не нужно править config.py; токен при смене надо обновить и на Android.
+
 ## Сборка Mac-приложения (.app)
 Упаковано через py2app в самодостаточный `AndroidDrop.app` (запускается двойным
 кликом, без Python/терминала). Сборка:

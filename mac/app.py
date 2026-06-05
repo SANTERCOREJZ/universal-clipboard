@@ -22,8 +22,11 @@ import uvicorn
 import config
 import discovery
 import server
+import settings
 import tls
+import window
 from server import app as fastapi_app, _local_ip
+from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
 
 
 # ── Server thread ─────────────────────────────────────────────────────────────
@@ -50,12 +53,18 @@ class AndroidDropApp(rumps.App):
         # rumps.App(title, icon=path) — icon must be a 22×22 px template image.
         super().__init__("AndroidDrop", title="⬇", quit_button=None)
 
+        # Menu-bar app with no Dock icon. The Settings window switches us to a regular
+        # (Dock-visible) app only while it is open.
+        NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        self.settings_window = window.SettingsWindow.alloc().init()
+
         # Toggle for the Mac → Android direction. Checked = the Mac pushes every
-        # new copy to connected phones. Starts on, matching server._watch_enabled.
+        # new copy to connected phones. Reflects the persisted setting.
         self.send_item = rumps.MenuItem("Send clipboard to Android", callback=self.toggle_send)
-        self.send_item.state = 1
+        self.send_item.state = 1 if settings.get("send_to_android") else 0
 
         self.menu = [
+            rumps.MenuItem("Settings…",            callback=self.open_settings),
             rumps.MenuItem("Open Received Folder", callback=self.open_folder),
             rumps.MenuItem("Recent Items",         callback=self.show_recent),
             None,  # separator
@@ -77,14 +86,18 @@ class AndroidDropApp(rumps.App):
 
     # ── Menu callbacks ────────────────────────────────────────────────────────
 
+    def open_settings(self, _):
+        """Open the settings window (also makes the app appear in the Dock while open)."""
+        self.settings_window.show()
+
     def open_folder(self, _):
-        """Open ~/Downloads/AndroidDrop in Finder."""
-        subprocess.run(["open", str(config.SAVE_DIR)], check=False)
+        """Open the received-files folder in Finder."""
+        subprocess.run(["open", str(settings.save_dir())], check=False)
 
     def show_recent(self, _):
         """Show the 5 most recently received files in an alert dialog."""
         files = sorted(
-            config.SAVE_DIR.glob("*"),
+            settings.save_dir().glob("*"),
             key=lambda p: p.stat().st_mtime,
             reverse=True,
         )[:5]
