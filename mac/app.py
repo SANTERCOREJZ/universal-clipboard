@@ -21,6 +21,7 @@ import uvicorn
 
 import config
 import discovery
+import icons
 import server
 import settings
 import tls
@@ -49,13 +50,19 @@ def _run_server() -> None:
 
 class AndroidDropApp(rumps.App):
     def __init__(self):
-        # "⬇" is a temporary text icon; replace with a real .png later.
-        # rumps.App(title, icon=path) — icon must be a 22×22 px template image.
-        super().__init__("AndroidDrop", title="⬇", quit_button=None)
+        super().__init__("AndroidDrop", title=None, quit_button=None)
 
-        # Menu-bar app with no Dock icon. The Settings window switches us to a regular
-        # (Dock-visible) app only while it is open.
-        NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        # Menu-bar icon: the same up/down sync arrows as the Android app, as a template
+        # image (auto-tints for light/dark menu bar). Assigned directly so we control size.
+        self._icon_nsimage = icons.menubar_image()
+
+        # Dock icon (shown only while the Settings window is open) — brand square + arrows.
+        app = NSApplication.sharedApplication()
+        app.setApplicationIconImage_(icons.dock_image())
+        # Menu-bar app with no Dock icon by default; the Settings window flips us to
+        # a regular (Dock-visible) app only while it is open.
+        app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+
         self.settings_window = window.SettingsWindow.alloc().init()
 
         # Toggle for the Mac → Android direction. Checked = the Mac pushes every

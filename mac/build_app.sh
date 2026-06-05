@@ -26,6 +26,9 @@ if ! "$PY" -c "import py2app" 2>/dev/null; then
   "$PY" -m pip install py2app
 fi
 
+echo "Generating app icon (AppIcon.icns)…"
+"$PY" make_icon.py
+
 echo "Cleaning previous build…"
 # A mounted AndroidDrop.dmg makes Finder recreate .DS_Store mid-delete ("Directory
 # not empty"); detach it first so the clean succeeds.

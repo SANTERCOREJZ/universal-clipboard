@@ -40,6 +40,11 @@ MVP работает в обе стороны:
 Отпечаток виден в меню мака («Show Security Code») и в `/health`.
 
 ## Mac UI
+Иконки рисуются из кода (`mac/icons.py`, стрелки = SF Symbol `arrow.up.arrow.down`,
+как на Android): строка меню — template-картинка (адаптируется к тёмной теме), док и
+Finder/Launchpad — индиго-квадрат с белыми стрелками (`AppIcon.icns` генерится
+`make_icon.py` при сборке, в git не коммитится).
+
 Живёт в строке меню (rumps, Accessory — иконки в доке нет). Пункт меню «Settings…»
 открывает окно (AppKit/PyObjC, `mac/window.py`): статус, редактируемый токен, выбор
 папки сохранения, тумблер «Send clipboard to Android», Security Code + Copy, «Open

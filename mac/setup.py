@@ -26,6 +26,7 @@ APP = ["app.py"]
 
 OPTIONS = {
     "argv_emulation": False,
+    "iconfile": "AppIcon.icns",
     "plist": {
         "CFBundleName": config.APP_NAME,
         "CFBundleDisplayName": config.APP_NAME,
@@ -56,7 +57,7 @@ OPTIONS = {
         "cffi",
     ],
     "includes": ["config", "server", "clipboard", "discovery", "tls", "settings", "window",
-                 "typing_extensions"],
+                 "icons", "typing_extensions"],
 }
 
 setup(

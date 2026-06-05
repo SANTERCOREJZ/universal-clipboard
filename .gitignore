@@ -22,3 +22,6 @@ android/.idea/
 mac/dist/
 mac/build/
 mac/*.egg-info/
+# App icon is generated from code by make_icon.py / build_app.sh
+mac/AppIcon.icns
+mac/AppIcon.iconset/

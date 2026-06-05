@@ -6,7 +6,6 @@ window switches the app to Regular so a Dock icon + app menu appear while it's o
 and switches back to Accessory when it's closed — so the Dock icon shows up only when
 you deliberately open the window.
 
-Same functionality as the menu, plus editable token and save-folder.
 Layout uses fixed frames (origin is bottom-left) to keep it simple and predictable.
 """
 
@@ -19,49 +18,61 @@ from AppKit import (
     NSApplicationActivationPolicyRegular,
     NSBackingStoreBuffered,
     NSBezelStyleRounded,
+    NSBox,
+    NSBoxSeparator,
     NSButton,
     NSButtonTypeSwitch,
+    NSColor,
     NSFont,
+    NSForegroundColorAttributeName,
+    NSImageView,
     NSMakeRect,
     NSOpenPanel,
     NSTextField,
+    NSView,
     NSWindow,
     NSWindowStyleMaskClosable,
     NSWindowStyleMaskMiniaturizable,
     NSWindowStyleMaskTitled,
 )
-from Foundation import NSObject
+from Foundation import NSAttributedString, NSObject
 
 import clipboard
 import config
+import icons
 import server
 import settings
 import tls
 
-W, H = 440, 380
+W, H = 480, 470
+M = 24                      # left/right margin
+FIELD_W = 312
+BTN_X = M + FIELD_W + 8     # buttons sit to the right of the fields
+BTN_W = W - BTN_X - M
 
 
-def _label(rect, text, bold=False, size=12, mono=False):
+def _label(rect, text, bold=False, size=12, color=None):
     f = NSTextField.alloc().initWithFrame_(rect)
     f.setStringValue_(text)
     f.setBezeled_(False)
     f.setDrawsBackground_(False)
     f.setEditable_(False)
-    f.setSelectable_(not bold)
-    if mono:
-        f.setFont_(NSFont.monospacedSystemFontOfSize_weight_(11, 0))
-    else:
-        f.setFont_(NSFont.boldSystemFontOfSize_(size) if bold else NSFont.systemFontOfSize_(size))
+    f.setSelectable_(False)
+    f.setFont_(NSFont.boldSystemFontOfSize_(size) if bold else NSFont.systemFontOfSize_(size))
+    if color is not None:
+        f.setTextColor_(color)
     return f
 
 
-def _field(rect, value="", editable=True):
+def _field(rect, value="", editable=True, mono=False):
     f = NSTextField.alloc().initWithFrame_(rect)
     f.setStringValue_(value)
     f.setEditable_(editable)
     f.setSelectable_(True)
     f.setBezeled_(True)
     f.setDrawsBackground_(True)
+    if mono:
+        f.setFont_(NSFont.monospacedSystemFontOfSize_weight_(10, 0))
     return f
 
 
@@ -81,6 +92,7 @@ class SettingsWindow(NSObject):
         self._refresh()
         app = NSApplication.sharedApplication()
         app.setActivationPolicy_(NSApplicationActivationPolicyRegular)  # Dock icon while open
+        app.setApplicationIconImage_(icons.dock_image())               # ← our icon, not Python's
         app.activateIgnoringOtherApps_(True)
         self._window.makeKeyAndOrderFront_(None)
 
@@ -96,56 +108,96 @@ class SettingsWindow(NSObject):
             NSMakeRect(0, 0, W, H), style, NSBackingStoreBuffered, False
         )
         win.setTitle_("AndroidDrop")
-        win.setReleasedWhenClosed_(False)  # reuse the same window on reopen
+        win.setReleasedWhenClosed_(False)
         win.center()
         win.setDelegate_(self)
-        content = win.contentView()
+        c = win.contentView()
+        secondary = NSColor.secondaryLabelColor()
 
-        self._status = _label(NSMakeRect(20, 346, W - 40, 20), "", bold=True, size=13)
-        content.addSubview_(self._status)
+        # Header: logo + title + subtitle
+        logo = NSImageView.alloc().initWithFrame_(NSMakeRect(M, H - 70, 46, 46))
+        logo.setImage_(icons.dock_image(46))
+        c.addSubview_(logo)
+        c.addSubview_(_label(NSMakeRect(M + 60, H - 48, W - M - 60, 24), "AndroidDrop", bold=True, size=18))
+        c.addSubview_(_label(NSMakeRect(M + 60, H - 68, W - M - 60, 16),
+                             "Clipboard & file sync with your Mac", color=secondary))
 
-        content.addSubview_(_label(NSMakeRect(20, 312, W - 40, 16),
-                                   "Shared token (must match the Android app)"))
-        self._token = _field(NSMakeRect(20, 284, 300, 24))
-        content.addSubview_(self._token)
-        content.addSubview_(self._button(NSMakeRect(330, 282, 90, 28), "Save", "saveToken:"))
+        c.addSubview_(self._sep(H - 88))
 
-        content.addSubview_(_label(NSMakeRect(20, 246, W - 40, 16), "Save folder (received files)"))
-        self._folder = _field(NSMakeRect(20, 218, 300, 24), editable=False)
-        content.addSubview_(self._folder)
-        content.addSubview_(self._button(NSMakeRect(330, 216, 90, 28), "Change…", "chooseFolder:"))
+        # Status: colored dot + text
+        self._dot = NSView.alloc().initWithFrame_(NSMakeRect(M, H - 112, 10, 10))
+        self._dot.setWantsLayer_(True)
+        self._dot.layer().setCornerRadius_(5.0)
+        c.addSubview_(self._dot)
+        self._status = _label(NSMakeRect(M + 18, H - 116, W - M - 18 - M, 18), "", bold=True, size=13)
+        c.addSubview_(self._status)
 
-        self._send = NSButton.alloc().initWithFrame_(NSMakeRect(20, 180, W - 40, 22))
+        # Token
+        c.addSubview_(_label(NSMakeRect(M, 314, W - 2 * M, 14),
+                             "Shared token (must match the Android app)", color=secondary))
+        self._token = _field(NSMakeRect(M, 286, FIELD_W, 24))
+        c.addSubview_(self._token)
+        c.addSubview_(self._button(NSMakeRect(BTN_X, 284, BTN_W, 28), "Save", "saveToken:", accent=True))
+
+        # Save folder
+        c.addSubview_(_label(NSMakeRect(M, 252, W - 2 * M, 14),
+                             "Save folder (received files)", color=secondary))
+        self._folder = _field(NSMakeRect(M, 224, FIELD_W, 24), editable=False)
+        c.addSubview_(self._folder)
+        c.addSubview_(self._button(NSMakeRect(BTN_X, 222, BTN_W, 28), "Change…", "chooseFolder:"))
+
+        # Toggle
+        self._send = NSButton.alloc().initWithFrame_(NSMakeRect(M, 186, W - 2 * M, 22))
         self._send.setButtonType_(NSButtonTypeSwitch)
-        self._send.setTitle_("Send clipboard to Android")
+        self._send.setTitle_("  Send clipboard to Android")
         self._send.setTarget_(self)
         self._send.setAction_("toggleSend:")
-        content.addSubview_(self._send)
+        c.addSubview_(self._send)
 
-        content.addSubview_(_label(NSMakeRect(20, 148, W - 40, 16),
-                                   "Security code (phone pins this on first connect)"))
-        self._pin = _field(NSMakeRect(20, 120, 300, 24), editable=False)
-        self._pin.setFont_(NSFont.monospacedSystemFontOfSize_weight_(10, 0))
-        content.addSubview_(self._pin)
-        content.addSubview_(self._button(NSMakeRect(330, 118, 90, 28), "Copy", "copyPin:"))
+        c.addSubview_(self._sep(168))
 
-        content.addSubview_(self._button(NSMakeRect(20, 78, 200, 28),
-                                         "Open Received Folder", "openFolder:"))
+        # Security code
+        c.addSubview_(_label(NSMakeRect(M, 142, W - 2 * M, 14),
+                             "Security code (the phone pins this on first connect)", color=secondary))
+        self._pin = _field(NSMakeRect(M, 114, FIELD_W, 24), editable=False, mono=True)
+        c.addSubview_(self._pin)
+        c.addSubview_(self._button(NSMakeRect(BTN_X, 112, BTN_W, 28), "Copy", "copyPin:"))
+
+        c.addSubview_(self._button(NSMakeRect(M, 64, 200, 30), "Open Received Folder", "openFolder:"))
 
         self._window = win
 
     @objc.python_method
-    def _button(self, rect, title, action):
+    def _sep(self, y):
+        box = NSBox.alloc().initWithFrame_(NSMakeRect(M, y, W - 2 * M, 1))
+        box.setBoxType_(NSBoxSeparator)
+        return box
+
+    @objc.python_method
+    def _button(self, rect, title, action, accent=False):
         b = NSButton.alloc().initWithFrame_(rect)
-        b.setTitle_(title)
         b.setBezelStyle_(NSBezelStyleRounded)
         b.setTarget_(self)
         b.setAction_(action)
+        if accent:
+            b.setBezelColor_(NSColor.colorWithSRGBRed_green_blue_alpha_(0x44 / 255, 0x56 / 255, 0xE0 / 255, 1.0))
+            b.setAttributedTitle_(NSAttributedString.alloc().initWithString_attributes_(
+                title, {NSForegroundColorAttributeName: NSColor.whiteColor()}))
+            b.setKeyEquivalent_("\r")
+        else:
+            b.setTitle_(title)
         return b
 
     @objc.python_method
     def _refresh(self):
-        self._status.setStringValue_(f"● Listening on https://{server._local_ip()}:{config.PORT}")
+        connected = len(server._ws_clients)
+        addr = f"https://{server._local_ip()}:{config.PORT}"
+        if connected:
+            self._status.setStringValue_(f"Connected · {addr}")
+            self._dot.layer().setBackgroundColor_(NSColor.systemGreenColor().CGColor())
+        else:
+            self._status.setStringValue_(f"Listening · {addr}")
+            self._dot.layer().setBackgroundColor_(NSColor.systemGrayColor().CGColor())
         self._token.setStringValue_(settings.get("token"))
         self._folder.setStringValue_(str(settings.save_dir()))
         self._send.setState_(1 if settings.get("send_to_android") else 0)
@@ -155,7 +207,7 @@ class SettingsWindow(NSObject):
     def saveToken_(self, sender):
         value = self._token.stringValue().strip() or "changeme"
         settings.set("token", value)
-        self._status.setStringValue_("● Token saved — update it on the phone too")
+        self._status.setStringValue_("Token saved — update it on the phone too")
 
     def chooseFolder_(self, sender):
         panel = NSOpenPanel.openPanel()
@@ -163,25 +215,23 @@ class SettingsWindow(NSObject):
         panel.setCanChooseFiles_(False)
         panel.setAllowsMultipleSelection_(False)
         if panel.runModal() == 1:  # NSModalResponseOK
-            path = panel.URLs()[0].path()
-            settings.set("save_dir", str(path))
+            settings.set("save_dir", str(panel.URLs()[0].path()))
             self._folder.setStringValue_(str(settings.save_dir()))
 
     def toggleSend_(self, sender):
         server.set_watch_enabled(bool(sender.state()))
 
     def copyPin_(self, sender):
-        # Use clipboard.set_text so the watcher treats it as our own write and does
-        # NOT push the security code to the phone.
+        # clipboard.set_text marks it as our own write so the watcher won't push the
+        # security code to the phone.
         clipboard.set_text(f"sha256/{tls.spki_pin()}")
-        self._status.setStringValue_("● Security code copied to clipboard")
+        self._status.setStringValue_("Security code copied to clipboard")
 
     def openFolder_(self, sender):
         subprocess.run(["open", str(settings.save_dir())], check=False)
 
     # ── Window delegate ─────────────────────────────────────────────────────
     def windowWillClose_(self, notification):
-        # Back to menu-bar-only: Dock icon disappears again.
         NSApplication.sharedApplication().setActivationPolicy_(
             NSApplicationActivationPolicyAccessory
         )
