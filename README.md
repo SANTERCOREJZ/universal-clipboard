@@ -101,8 +101,13 @@ cd mac
 
 ### Android
 
-Build the APK in **Android Studio** (open the `android/` project, Run/Build → APK) and
-install it on the phone. There is no Play Store build.
+**Option A — prebuilt APK (Releases):** download `AndroidDrop.apk` and open it on the phone.
+Android will ask you to allow installs from your browser/file manager — allow it. If Google
+Play Protect warns about an unknown app, choose **Install anyway** (the app is sideloaded,
+not from the Play Store).
+
+**Option B — from source:** open the `android/` project in **Android Studio** and build/run
+it (or `./gradlew assembleRelease` with your own signing config).
 
 ---
 
